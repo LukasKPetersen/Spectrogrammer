@@ -14,6 +14,7 @@ import soundfile as sf
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from src.spectrogram_processor import generate_spectrogram, plot_spectrogram
+from src.input_handler import load_audio
 
 
 class TestSpectrogramGeneration(unittest.TestCase):
