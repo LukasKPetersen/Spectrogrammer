@@ -1,15 +1,20 @@
 """
 Unit tests for the Spectrogrammer application.
 """
-import unittest
-import numpy as np
-import tempfile
 import os
-from pathlib import Path
 import sys
+import tempfile
+import unittest
+from pathlib import Path
+
+import numpy as np
 import soundfile as sf
 
+# Add parent directory to path for imports
+sys.path.insert(0, str(Path(__file__).parent.parent))
+
 from src.spectrogram_processor import generate_spectrogram, plot_spectrogram
+from src.input_handler import load_audio
 
 
 class TestSpectrogramGeneration(unittest.TestCase):
@@ -49,17 +54,59 @@ class TestSpectrogramGeneration(unittest.TestCase):
 class TestAudioDuration(unittest.TestCase):
     """Test audio duration validation."""
     
-    def test_audio_duration_check(self):
-        """Test that audio duration is properly calculated."""
+    def test_load_audio_with_valid_duration(self):
+        """Test that load_audio successfully loads files within duration limit."""
         sample_rate = 44100
         duration = 3  # 3 seconds
-        audio = np.random.randn(sample_rate * duration).astype(np.float32)
+        audio_data = np.random.randn(sample_rate * duration).astype(np.float32)
         
-        # Calculate duration from audio array
-        calculated_duration = len(audio) / sample_rate
+        # Create a temporary WAV file
+        with tempfile.NamedTemporaryFile(suffix='.wav', delete=False) as tmp_file:
+            tmp_path = tmp_file.name
         
-        self.assertAlmostEqual(calculated_duration, duration, places=2)
-        self.assertGreater(calculated_duration, 0)
+        try:
+            # Write audio data to file
+            sf.write(tmp_path, audio_data, sample_rate)
+            
+            # Test load_audio function with a max_duration that allows this file
+            loaded_audio, loaded_sr = load_audio(tmp_path, max_duration=10)
+            
+            # Verify the loaded audio matches what we wrote
+            self.assertEqual(loaded_sr, sample_rate)
+            self.assertAlmostEqual(len(loaded_audio) / loaded_sr, duration, places=1)
+            self.assertGreater(len(loaded_audio), 0)
+        finally:
+            # Clean up
+            if os.path.exists(tmp_path):
+                os.unlink(tmp_path)
+    
+    def test_load_audio_exceeds_max_duration(self):
+        """Test that load_audio raises ValueError when file exceeds max_duration."""
+        sample_rate = 44100
+        duration = 5  # 5 seconds
+        audio_data = np.random.randn(sample_rate * duration).astype(np.float32)
+        
+        # Create a temporary WAV file
+        with tempfile.NamedTemporaryFile(suffix='.wav', delete=False) as tmp_file:
+            tmp_path = tmp_file.name
+        
+        try:
+            # Write audio data to file
+            sf.write(tmp_path, audio_data, sample_rate)
+            
+            # Test that load_audio raises RuntimeError when max_duration is exceeded
+            # (ValueError is caught and re-raised as RuntimeError in load_audio)
+            with self.assertRaises(RuntimeError) as context:
+                load_audio(tmp_path, max_duration=3)
+            
+            # Verify error message contains key information about duration violation
+            error_msg = str(context.exception)
+            self.assertIn("duration", error_msg.lower())
+            self.assertIn("exceeds maximum", error_msg.lower())
+        finally:
+            # Clean up
+            if os.path.exists(tmp_path):
+                os.unlink(tmp_path)
 
 
 class TestMonoConversion(unittest.TestCase):
