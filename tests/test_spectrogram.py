@@ -14,7 +14,6 @@ import soundfile as sf
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from src.spectrogram_processor import generate_spectrogram, plot_spectrogram
-from src.input_handler import load_audio
 
 
 class TestSpectrogramGeneration(unittest.TestCase):
@@ -121,15 +120,30 @@ class TestMonoConversion(unittest.TestCase):
         right_channel = np.sin(2 * np.pi * 880 * np.linspace(0, duration, sample_rate))
         stereo_audio = np.column_stack((left_channel, right_channel))
         
-        # Convert to mono by averaging
-        if len(stereo_audio.shape) > 1:
-            mono_audio = np.mean(stereo_audio, axis=1)
-        else:
-            mono_audio = stereo_audio
+        # Create temporary stereo WAV file
+        with tempfile.NamedTemporaryFile(suffix='.wav', delete=False) as tmp:
+            tmp_path = tmp.name
         
-        # Check that result is 1D
-        self.assertEqual(len(mono_audio.shape), 1)
-        self.assertEqual(len(mono_audio), sample_rate)
+        try:
+            # Write stereo audio to file
+            sf.write(tmp_path, stereo_audio, sample_rate)
+            
+            # Use load_audio to load and convert to mono
+            mono_audio, loaded_sample_rate = load_audio(tmp_path)
+            
+            # Check that result is 1D (mono)
+            self.assertEqual(len(mono_audio.shape), 1)
+            self.assertEqual(loaded_sample_rate, sample_rate)
+            self.assertEqual(len(mono_audio), sample_rate)
+            
+            # Verify that the mono audio is approximately the average of left and right channels
+            # Convert expected to match the dtype returned by load_audio
+            expected_mono = np.mean(stereo_audio, axis=1).astype(mono_audio.dtype)
+            np.testing.assert_allclose(mono_audio, expected_mono, rtol=1e-4, atol=1e-4)
+        finally:
+            # Clean up
+            if os.path.exists(tmp_path):
+                os.unlink(tmp_path)
 
 
 class TestPlotSpectrogram(unittest.TestCase):
@@ -140,7 +154,7 @@ class TestPlotSpectrogram(unittest.TestCase):
         # Generate test data
         sample_rate = 44100
         duration = 1
-        audio = np.sin(2 * np.pi * 440 * np.linspace(0, duration, sample_rate * duration)).astype(np.float32)
+        audio = np.sin(2 * np.pi * 440 * np.linspace(0, duration, int(sample_rate * duration))).astype(np.float32)
         
         frequencies, times, spectrogram = generate_spectrogram(audio, sample_rate)
         
