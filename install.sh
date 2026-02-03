@@ -28,6 +28,14 @@ else
     python3 --version
 fi
 
+# Check if ffmpeg is installed (required for M4A support)
+if ! command -v ffmpeg &> /dev/null; then
+    echo "ffmpeg not found. Installing ffmpeg (required for M4A support)..."
+    brew install ffmpeg
+else
+    echo "✓ ffmpeg is already installed"
+fi
+
 # Create virtual environment
 echo ""
 echo "Creating virtual environment..."
@@ -48,5 +56,7 @@ echo "To use Spectrogrammer:"
 echo "  1. Activate the virtual environment:"
 echo "     source venv/bin/activate"
 echo "  2. Run the program:"
-echo "     python main.py"
+echo "     python src/main.py path/to/audio.wav"
+echo ""
+echo "Supported formats: WAV, MP3, FLAC, OGG, M4A"
 echo ""

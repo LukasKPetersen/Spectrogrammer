@@ -1,17 +1,47 @@
 # Spectrogrammer
 
-A simple Python application that generates spectrograms from audio files in the time-frequency domain.
-
-## Features
-
-- Load audio files up to 6 minutes long
-- Generate spectrogram using Short-Time Fourier Transform (STFT)
-- Visualize the time-frequency representation
-- Save spectrogram as an image file
+A simple Python application that generates spectrograms from audio files in the time-frequency domain. The maximum length of the audio files is 6 minutes.
 
 ## Installation
 
-1. Install the required dependencies:
+### Windows
+
+1. Download or clone this repository
+2. Double-click `install.bat` or run it in Command Prompt
+3. The script will automatically:
+   - Download and install Python 3.12 if not present
+   - Create a virtual environment
+   - Install all required dependencies
+
+After installation, to use the program:
+```cmd
+venv\Scripts\activate.bat
+venv\Scripts\python.exe src\main.py <path\to\your\audio.wav>
+```
+
+### macOS / Linux
+
+1. Download or clone this repository
+2. Open Terminal and navigate to the project folder
+3. Run the installation script:
+```bash
+./install.sh
+```
+4. The script will automatically:
+   - Install Homebrew (if needed)
+   - Install Python 3 (if needed)
+   - Create a virtual environment
+   - Install all required dependencies
+
+After installation, to use the program:
+```bash
+source venv/bin/activate
+venv\Scripts\python.exe src\main.py <path\to\your\audio.wav>
+```
+
+### Manual Installation
+
+If you prefer to install manually or already have Python installed:
 ```bash
 pip install -r requirements.txt
 ```
@@ -20,25 +50,18 @@ pip install -r requirements.txt
 
 Basic usage (display spectrogram):
 ```bash
-python main.py path/to/your/audio.wav
+venv\Scripts\python.exe src\main.py <path\to\your\audio.wav>
 ```
 
 Save spectrogram to a file:
 ```bash
-python main.py path/to/your/audio.wav -o spectrogram.png
+venv\Scripts\python.exe src\main.py <path\to\your\audio.wav> -o <path\to\spectrogram_image.png>
 ```
 
 Save without displaying:
 ```bash
-python main.py path/to/your/audio.wav -o spectrogram.png --no-show
+venv\Scripts\python.exe src\main.py <path\to\your\audio.wav> -o <path\to\spectrogram_image.png> --no-show
 ```
-
-## Project Structure
-
-- `main.py` - Main application entry point with command-line interface
-- `input_handler.py` - Handles audio file loading and validation
-- `spectrogram_processor.py` - Generates and plots spectrograms
-- `requirements.txt` - Python package dependencies
 
 ## Supported Audio Formats
 
@@ -48,10 +71,3 @@ The application supports various audio formats including:
 - FLAC
 - OGG
 - M4A
-
-## Technical Details
-
-- Uses **librosa** for audio processing and STFT computation
-- Uses **matplotlib** for visualization
-- Maximum audio duration: 6 minutes (360 seconds)
-- Spectrogram displayed in dB scale with time and frequency axes

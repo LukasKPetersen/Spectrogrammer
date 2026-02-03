@@ -3,6 +3,10 @@ Audio input handler for loading and validating audio files.
 """
 import soundfile as sf
 import numpy as np
+import tempfile
+import os
+from pathlib import Path
+from pydub import AudioSegment
 
 
 def load_audio(file_path: str, max_duration: int = 360) -> tuple[np.ndarray, int]:
@@ -21,8 +25,27 @@ def load_audio(file_path: str, max_duration: int = 360) -> tuple[np.ndarray, int
         ValueError: If the audio file exceeds the maximum duration
     """
     try:
-        # Load audio file with soundfile
-        audio, sample_rate = sf.read(file_path, dtype='float32')
+        file_extension = Path(file_path).suffix.lower()
+        
+        # Handle M4A files by converting to WAV temporarily
+        if file_extension == '.m4a':
+            print("Converting M4A file...")
+            audio_segment = AudioSegment.from_file(file_path, format='m4a')
+            
+            # Create a temporary WAV file
+            with tempfile.NamedTemporaryFile(suffix='.wav', delete=False) as tmp_file:
+                tmp_wav_path = tmp_file.name
+                audio_segment.export(tmp_wav_path, format='wav')
+            
+            try:
+                # Load the temporary WAV file
+                audio, sample_rate = sf.read(tmp_wav_path, dtype='float32')
+            finally:
+                # Clean up temporary file
+                os.unlink(tmp_wav_path)
+        else:
+            # Load audio file with soundfile for other formats
+            audio, sample_rate = sf.read(file_path, dtype='float32')
         
         # Convert to mono if stereo
         if len(audio.shape) > 1:
