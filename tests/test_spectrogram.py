@@ -93,7 +93,7 @@ class TestPlotSpectrogram(unittest.TestCase):
         # Generate test data
         sample_rate = 44100
         duration = 1
-        audio = np.sin(2 * np.pi * 440 * np.linspace(0, duration, sample_rate * duration)).astype(np.float32)
+        audio = np.sin(2 * np.pi * 440 * np.linspace(0, duration, int(sample_rate * duration))).astype(np.float32)
         
         frequencies, times, spectrogram = generate_spectrogram(audio, sample_rate)
         
