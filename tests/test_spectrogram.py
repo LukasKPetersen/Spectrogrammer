@@ -9,7 +9,6 @@ from pathlib import Path
 import sys
 
 from src.spectrogram_processor import generate_spectrogram, plot_spectrogram
-from src.input_handler import load_audio
 
 
 class TestSpectrogramGeneration(unittest.TestCase):
