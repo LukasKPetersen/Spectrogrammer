@@ -1,12 +1,13 @@
 """
 Unit tests for the Spectrogrammer application.
 """
-import unittest
-import numpy as np
-import tempfile
 import os
-from pathlib import Path
 import sys
+import tempfile
+import unittest
+from pathlib import Path
+
+import numpy as np
 import soundfile as sf
 
 # Add parent directory to path for imports
@@ -98,8 +99,10 @@ class TestAudioDuration(unittest.TestCase):
             with self.assertRaises(RuntimeError) as context:
                 load_audio(tmp_path, max_duration=3)
             
-            # Verify error message mentions duration
-            self.assertIn("exceeds maximum", str(context.exception))
+            # Verify error message contains key information about duration violation
+            error_msg = str(context.exception)
+            self.assertIn("duration", error_msg.lower())
+            self.assertIn("exceeds maximum", error_msg.lower())
         finally:
             # Clean up
             if os.path.exists(tmp_path):
