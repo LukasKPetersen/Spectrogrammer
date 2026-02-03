@@ -7,6 +7,7 @@ import tempfile
 import os
 from pathlib import Path
 import sys
+import soundfile as sf
 
 # Add parent directory to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent))
@@ -70,8 +71,6 @@ class TestMonoConversion(unittest.TestCase):
     
     def test_stereo_to_mono_conversion(self):
         """Test that stereo audio is properly converted to mono."""
-        import soundfile as sf
-        
         # Create stereo audio (2 channels)
         sample_rate = 44100
         duration = 1
@@ -96,8 +95,8 @@ class TestMonoConversion(unittest.TestCase):
             self.assertEqual(len(mono_audio), sample_rate)
             
             # Verify that the mono audio is approximately the average of left and right channels
-            # We use a looser tolerance because of WAV file encoding/decoding precision
-            expected_mono = np.mean(stereo_audio, axis=1).astype(np.float32)
+            # Convert expected to match the dtype returned by load_audio
+            expected_mono = np.mean(stereo_audio, axis=1).astype(mono_audio.dtype)
             np.testing.assert_allclose(mono_audio, expected_mono, rtol=1e-4, atol=1e-4)
         finally:
             # Clean up
